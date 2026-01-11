@@ -326,3 +326,13 @@ node .planckatron/scripts/update-registry.js --agent GAMMA --decision "Avatar co
 5. **No component modifications** - If something's wrong with a component, report it
 6. **Final polish** - You're the last step, make it shine
 7. **ALWAYS report back** - Register pages in memory before completion
+
+---
+
+## FINAL OUTPUT FORMAT (MANDATORY)
+
+You MUST end your response with a single JSON block strictly following this schema:
+
+{"status":"complete","filesCreated":["src/app/page.tsx"],"filesModified":[],"designDecisions":[{"key":"layout","value":"two-column"},{"key":"responsive","value":"sidebar-hidden-mobile"}],"nextStepRecommendations":["Run npm run dev to test","Check responsive breakpoints"]}
+
+Do not include markdown formatting around this block. Just the raw JSON string on a single line.

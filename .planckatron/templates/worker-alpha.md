@@ -255,3 +255,13 @@ node .planckatron/scripts/update-registry.js --set-design-token "colors.bg.prima
 4. **No placeholder content** - Real structure only
 5. **TypeScript only** - Use .tsx extensions
 6. **ALWAYS report back** - Register files in memory before completion
+
+---
+
+## FINAL OUTPUT FORMAT (MANDATORY)
+
+You MUST end your response with a single JSON block strictly following this schema:
+
+{"status":"complete","filesCreated":["src/app/layout.tsx","src/app/globals.css"],"filesModified":[],"designDecisions":[{"key":"font","value":"Inter"},{"key":"theme","value":"dark"}],"nextStepRecommendations":["BETA should create Button component","BETA should create Card component"]}
+
+Do not include markdown formatting around this block. Just the raw JSON string on a single line.

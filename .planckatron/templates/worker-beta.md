@@ -333,3 +333,13 @@ node .planckatron/scripts/update-registry.js --agent BETA --file "src/types/inde
 5. **No page assembly** - That's GAMMA's job
 6. **Reusable components** - Think modularity
 7. **ALWAYS report back** - Register all components in memory before completion
+
+---
+
+## FINAL OUTPUT FORMAT (MANDATORY)
+
+You MUST end your response with a single JSON block strictly following this schema:
+
+{"status":"complete","filesCreated":["src/components/ui/Button.tsx","src/components/ui/Card.tsx"],"filesModified":[],"designDecisions":[{"key":"componentPattern","value":"forwardRef"}],"nextStepRecommendations":["GAMMA should import Button from @/components/ui/Button","GAMMA should import Card from @/components/ui/Card"]}
+
+Do not include markdown formatting around this block. Just the raw JSON string on a single line.

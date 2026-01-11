@@ -10,7 +10,7 @@
  *   node update-registry.js --agent BETA --component "Button" --path "src/components/ui/Button.tsx" --exports "Button,ButtonProps"
  *   node update-registry.js --agent ORCHESTRATOR --decision "Use Inter font" --rationale "Per design system"
  *   node update-registry.js --set-project-type "frontend" --stack "Next.js,TypeScript,Tailwind"
- *   node update-registry.js --set-design-token "colors.bg.primary" "#1a1a2e"
+ *   node update-registry.js --set-design-token "colors.bg.primary" --value "#1a1a2e"
  *   node update-registry.js --start-execution "task-123" --description "Build user dashboard"
  *   node update-registry.js --update-checkpoint --agent ALPHA --status complete
  *   node update-registry.js --complete-execution
@@ -237,7 +237,7 @@ Project Info:
   --set-project-type "frontend" --stack "Next.js,TypeScript,Tailwind"
 
 Design Tokens:
-  --set-design-token "colors.bg.primary" "#1a1a2e"
+  --set-design-token "colors.bg.primary" --value "#1a1a2e"
 
 Execution Tracking:
   --start-execution "task-123" --description "Task description"
@@ -269,9 +269,14 @@ Execution Tracking:
     setProjectInfo(memory, args['set-project-type'], args.stack);
   }
 
-  // Design token
+  // Design token (requires explicit --value argument)
   if (args['set-design-token']) {
-    setDesignToken(memory, args['set-design-token'], args[Object.keys(args).find(k => !k.startsWith('set-') && k !== 'set-design-token')]);
+    if (!args.value) {
+      console.error('[ERROR] --set-design-token requires --value argument.');
+      console.error('  Usage: --set-design-token "colors.bg.primary" --value "#1a1a2e"');
+      process.exit(1);
+    }
+    setDesignToken(memory, args['set-design-token'], args.value);
   }
 
   // Execution tracking
