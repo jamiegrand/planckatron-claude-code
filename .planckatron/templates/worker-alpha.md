@@ -197,6 +197,56 @@ Ready for BETA to proceed.
 
 ---
 
+## REPORT BACK TO MEMORY (REQUIRED!)
+
+**CRITICAL:** After completing your tasks, you MUST register your work in the project memory.
+This enables crash recovery and prevents duplicate work in future sessions.
+
+### Step 1: Register Files Created
+For EACH file you created or modified, run:
+
+```bash
+node .planckatron/scripts/update-registry.js --agent ALPHA --file "src/app/layout.tsx" --purpose "Root layout with dark theme"
+node .planckatron/scripts/update-registry.js --agent ALPHA --file "src/app/globals.css" --purpose "Global CSS variables and base styles"
+```
+
+### Step 2: Record Architecture Decisions
+If you made any design choices, record them:
+
+```bash
+node .planckatron/scripts/update-registry.js --agent ALPHA --decision "Use Inter font" --rationale "Clean, modern sans-serif per design"
+node .planckatron/scripts/update-registry.js --agent ALPHA --decision "CSS variables for theming" --rationale "Easier theme switching"
+```
+
+### Step 3: Update Design Tokens (if extracted/finalized)
+If you extracted or finalized design tokens:
+
+```bash
+node .planckatron/scripts/update-registry.js --set-design-token "colors.bg.primary" "#1a1a2e"
+node .planckatron/scripts/update-registry.js --set-design-token "colors.bg.secondary" "#252542"
+node .planckatron/scripts/update-registry.js --set-design-token "fonts.primary" "Inter"
+```
+
+### Memory Registration Checklist
+- [ ] All created files registered with `--file`
+- [ ] Architecture decisions recorded with `--decision`
+- [ ] Design tokens saved to memory (if newly extracted)
+
+### Example Full Report Back
+```bash
+# Register all files
+node .planckatron/scripts/update-registry.js --agent ALPHA --file "src/app/layout.tsx" --purpose "Root layout"
+node .planckatron/scripts/update-registry.js --agent ALPHA --file "src/app/globals.css" --purpose "Global styles"
+
+# Record decisions
+node .planckatron/scripts/update-registry.js --agent ALPHA --decision "Dark theme default" --rationale "User preference"
+
+# Save design tokens
+node .planckatron/scripts/update-registry.js --set-design-token "colors.bg.primary" "#1a1a2e"
+```
+
+---
+
 ## IMPORTANT RULES
 
 1. **Stay in your zone** - Only touch files you own
@@ -204,3 +254,4 @@ Ready for BETA to proceed.
 3. **Keep it minimal** - Only what's needed for foundation
 4. **No placeholder content** - Real structure only
 5. **TypeScript only** - Use .tsx extensions
+6. **ALWAYS report back** - Register files in memory before completion

@@ -271,6 +271,52 @@ Before reporting done:
 
 ---
 
+## REPORT BACK TO MEMORY (REQUIRED!)
+
+**CRITICAL:** After completing your tasks, you MUST register your pages in the project memory.
+This completes the execution record and enables future sessions to know what pages exist.
+
+### Step 1: Register Page Files
+```bash
+node .planckatron/scripts/update-registry.js --agent GAMMA --file "src/app/page.tsx" --purpose "Main dashboard page"
+node .planckatron/scripts/update-registry.js --agent GAMMA --file "src/app/profile/page.tsx" --purpose "User profile page"
+```
+
+### Step 2: Record Integration Decisions
+If you made layout or integration choices:
+
+```bash
+node .planckatron/scripts/update-registry.js --agent GAMMA --decision "Two-column layout" --rationale "Sidebar for navigation, main content area for data"
+node .planckatron/scripts/update-registry.js --agent GAMMA --decision "Mobile sidebar hidden" --rationale "Responsive design, use hamburger menu for mobile"
+```
+
+### Step 3: Report Component Issues (if any)
+If you encountered problems with BETA's components, document them:
+
+```bash
+node .planckatron/scripts/update-registry.js --agent GAMMA --decision "Button needs hover state fix" --rationale "Hover color not visible on dark background"
+```
+
+### Memory Registration Checklist
+- [ ] All page files registered with `--file`
+- [ ] Integration decisions recorded with `--decision`
+- [ ] Any component issues documented for future reference
+
+### Example Full Report Back
+```bash
+# Register pages
+node .planckatron/scripts/update-registry.js --agent GAMMA --file "src/app/page.tsx" --purpose "Main page with dashboard layout"
+
+# Record integration decisions
+node .planckatron/scripts/update-registry.js --agent GAMMA --decision "Grid layout for cards" --rationale "3-column on desktop, 1-column on mobile"
+node .planckatron/scripts/update-registry.js --agent GAMMA --decision "Sticky header" --rationale "Keep navigation accessible while scrolling"
+
+# Note any issues found
+node .planckatron/scripts/update-registry.js --agent GAMMA --decision "Avatar component needs size prop" --rationale "Current fixed size doesn't fit all use cases"
+```
+
+---
+
 ## IMPORTANT RULES
 
 1. **Import only, don't recreate** - Use BETA's components
@@ -279,3 +325,4 @@ Before reporting done:
 4. **Responsive first** - Must work on all sizes
 5. **No component modifications** - If something's wrong with a component, report it
 6. **Final polish** - You're the last step, make it shine
+7. **ALWAYS report back** - Register pages in memory before completion

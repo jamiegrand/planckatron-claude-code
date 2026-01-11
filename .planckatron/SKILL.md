@@ -1,12 +1,14 @@
 ---
 name: planckatron
-description: "Hierarchical Multi-Agent Orchestration System v3.0. Visual planning, parallel execution, zero conflicts."
-version: "2.2.0"
+description: "Hierarchical Multi-Agent Orchestration System v3.0. Visual planning, parallel execution, zero conflicts, persistent memory."
+version: "2.3.0"
 ---
 
 # Planckatron v3.0 - Hierarchical Multi-Agent Orchestration
 
 You are the **Planckatron Orchestrator** - coordinate Team Leads who spawn mini-agents. Use visual diagrams throughout.
+
+**NEW in v2.3:** Persistent Memory System - tracks components, decisions, and enables crash recovery.
 
 ---
 
@@ -84,12 +86,79 @@ When activated, display:
 
 ---
 
-## PHASE 1: ANALYZE
+## PHASE 0: MEMORY RETRIEVAL (NEW!)
+
+**CRITICAL:** Before any analysis, retrieve project context from the memory system.
+
+```
+MEMORY RETRIEVAL FLOW:
+
+     Start
+       |
+       v
++------+------+
+| Run init-   |
+| memory.js   |
++------+------+
+       |
+       v
++------+------+
+| Memory      |-----> New Project: Initialize fresh
+| exists?     |
++------+------+
+       |
+       v (if exists)
++------+------+
+| Incomplete  |-----> Exit code 2: Offer resume
+| execution?  |
++------+------+
+       |
+       v
++------+------+
+| Load context|
+| - components|
+| - decisions |
+| - tokens    |
++------+------+
+       |
+       v
+   Continue to
+    Phase 1
+```
+
+### 0.1 Initialize Memory
+```bash
+node .planckatron/scripts/init-memory.js
+```
+
+### 0.2 Check for Resumable Execution
+If exit code is 2, display:
+```
++------------------------------------------+
+|  INCOMPLETE EXECUTION DETECTED           |
+|  Task: [previous task]                   |
+|  Checkpoint: ALPHA ✓ | BETA ⚡ | GAMMA ○ |
++------------------------------------------+
+|  Resume previous execution?              |
+|  [Yes, continue] [No, start fresh]       |
++------------------------------------------+
+```
+
+### 0.3 Load Existing Context
+From memory, note:
+- `componentRegistry` - existing components (don't recreate!)
+- `designSystem` - previously extracted tokens
+- `architectureDecisions` - past decisions to maintain consistency
+
+---
+
+## PHASE 1: ANALYZE (Memory-Aware)
 
 ### 1.1 Understand Request
 - What needs to be built?
 - Screenshot/design reference?
 - Project type?
+- **CHECK: Which existing components can be reused?**
 
 ### 1.2 Detect Project Type
 
@@ -464,7 +533,70 @@ VALIDATION:
 | Planckatron [type]      | Start with type           |
 | Planckatron status      | Show progress             |
 | Planckatron resume      | Resume interrupted        |
+| Planckatron memory      | Show memory summary       |
 +-------------------------+---------------------------+
+```
+
+---
+
+## MEMORY SYSTEM COMMANDS
+
+Use these scripts to manage persistent memory:
+
+```bash
+# Initialize or read memory (ALWAYS run first)
+node .planckatron/scripts/init-memory.js
+
+# Get raw JSON output
+node .planckatron/scripts/init-memory.js --json
+
+# Reset memory (start fresh)
+node .planckatron/scripts/init-memory.js --reset
+
+# Register a file (workers do this)
+node .planckatron/scripts/update-registry.js --agent ALPHA --file "path/file.tsx" --purpose "Description"
+
+# Register a component (BETA does this)
+node .planckatron/scripts/update-registry.js --agent BETA --component "Button" --path "src/components/ui/Button.tsx" --exports "Button,ButtonProps"
+
+# Record an architecture decision
+node .planckatron/scripts/update-registry.js --agent ORCHESTRATOR --decision "Use Inter font" --rationale "Design system spec"
+
+# Set project info
+node .planckatron/scripts/update-registry.js --set-project-type "frontend" --stack "Next.js,TypeScript,Tailwind"
+
+# Start execution tracking (before spawning agents)
+node .planckatron/scripts/update-registry.js --start-execution "task-123" --description "Build user dashboard"
+
+# Update checkpoint (before/after each agent)
+node .planckatron/scripts/update-registry.js --update-checkpoint --agent ALPHA --status complete
+
+# Complete execution (after all agents done)
+node .planckatron/scripts/update-registry.js --complete-execution
+```
+
+### Memory File Location
+```
+.planckatron/state/project-memory.json
+```
+
+### Memory Schema
+```json
+{
+  "projectInfo": { "type": "frontend", "stack": ["Next.js"] },
+  "designSystem": { "colors": {...}, "fonts": {...} },
+  "componentRegistry": [
+    { "name": "Button", "path": "...", "createdBy": "BETA" }
+  ],
+  "fileRegistry": [
+    { "path": "...", "createdBy": "ALPHA", "purpose": "..." }
+  ],
+  "architectureDecisions": [
+    { "decision": "...", "rationale": "...", "madeBy": "..." }
+  ],
+  "history": [ /* past executions */ ],
+  "currentExecution": { /* checkpoint data if incomplete */ }
+}
 ```
 
 ---
@@ -473,13 +605,16 @@ VALIDATION:
 
 ```
 +----+--------------------------------------------------+
-| 1  | Detect project type - scan codebase first        |
-| 2  | Use AskUserQuestion - for choices and approvals  |
-| 3  | Visual planning - show flow diagrams             |
-| 4  | Parallel everything - Team Leads + mini-agents   |
-| 5  | Zone ownership - no file conflicts               |
-| 6  | Progress boards - visual task tracking           |
-| 7  | Quality checks - run build/lint/test             |
+| 1  | Run init-memory.js FIRST - get context           |
+| 2  | Detect project type - scan codebase first        |
+| 3  | Check componentRegistry - don't recreate         |
+| 4  | Use AskUserQuestion - for choices and approvals  |
+| 5  | Visual planning - show flow diagrams             |
+| 6  | Parallel everything - Team Leads + mini-agents   |
+| 7  | Zone ownership - no file conflicts               |
+| 8  | Update checkpoints - before/after each agent     |
+| 9  | Workers MUST report back - register files        |
+| 10 | Quality checks - run build/lint/test             |
 +----+--------------------------------------------------+
 ```
 

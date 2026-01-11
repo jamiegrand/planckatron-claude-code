@@ -263,6 +263,67 @@ Ready for GAMMA to integrate.
 
 ---
 
+## REPORT BACK TO MEMORY (REQUIRED!)
+
+**CRITICAL:** After completing your tasks, you MUST register your components in the project memory.
+This allows GAMMA to know exactly what components are available and prevents duplicate work.
+
+### Step 1: Register Each Component
+For EACH component you created, run:
+
+```bash
+node .planckatron/scripts/update-registry.js --agent BETA --component "Button" --path "src/components/ui/Button.tsx" --exports "Button,ButtonProps"
+node .planckatron/scripts/update-registry.js --agent BETA --component "Card" --path "src/components/ui/Card.tsx" --exports "Card,CardProps"
+node .planckatron/scripts/update-registry.js --agent BETA --component "UserCard" --path "src/components/feature/UserCard.tsx" --exports "UserCard"
+```
+
+### Step 2: Register Utility Files
+```bash
+node .planckatron/scripts/update-registry.js --agent BETA --file "src/lib/utils.ts" --purpose "Utility functions including cn()"
+node .planckatron/scripts/update-registry.js --agent BETA --file "src/data/users.ts" --purpose "Mock user data"
+```
+
+### Step 3: Register Types
+```bash
+node .planckatron/scripts/update-registry.js --agent BETA --file "src/types/index.ts" --purpose "Shared TypeScript interfaces"
+```
+
+### Component Registration Format
+```
+--component "ComponentName"           # The exported component name
+--path "src/components/path/File.tsx" # Full path from project root
+--exports "Export1,Export2"           # Comma-separated list of all exports
+```
+
+### Memory Registration Checklist
+- [ ] All UI components registered with `--component`
+- [ ] All utility files registered with `--file`
+- [ ] All data files registered with `--file`
+- [ ] All type definition files registered
+- [ ] Exports list is accurate for each component
+
+### Why This Matters
+GAMMA will receive this component registry and know:
+1. What components exist and their exact names
+2. Where to import them from
+3. What props/types are available
+
+### Example Full Report Back
+```bash
+# Components
+node .planckatron/scripts/update-registry.js --agent BETA --component "Button" --path "src/components/ui/Button.tsx" --exports "Button,ButtonProps"
+node .planckatron/scripts/update-registry.js --agent BETA --component "Card" --path "src/components/ui/Card.tsx" --exports "Card"
+node .planckatron/scripts/update-registry.js --agent BETA --component "Avatar" --path "src/components/ui/Avatar.tsx" --exports "Avatar"
+node .planckatron/scripts/update-registry.js --agent BETA --component "Badge" --path "src/components/ui/Badge.tsx" --exports "Badge"
+
+# Utility files
+node .planckatron/scripts/update-registry.js --agent BETA --file "src/lib/utils.ts" --purpose "Utilities including cn()"
+node .planckatron/scripts/update-registry.js --agent BETA --file "src/data/mockData.ts" --purpose "Mock data for development"
+node .planckatron/scripts/update-registry.js --agent BETA --file "src/types/index.ts" --purpose "TypeScript interfaces"
+```
+
+---
+
 ## IMPORTANT RULES
 
 1. **Stay in your zone** - Only create components, data, utilities
@@ -271,3 +332,4 @@ Ready for GAMMA to integrate.
 4. **TypeScript always** - Proper interfaces for everything
 5. **No page assembly** - That's GAMMA's job
 6. **Reusable components** - Think modularity
+7. **ALWAYS report back** - Register all components in memory before completion
