@@ -5,14 +5,28 @@
 # DESCRIPTION
 #   Checks that all required Planckatron files exist and are valid.
 
-# ANSI Color Codes
-CYAN='\033[0;36m'
+# === DARK MODE COLOR PALETTE ===
+# Primary: Red (menacing)
+# Secondary: Purple (mysterious)
+# Text: White/Gray (readable)
+
 RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-GRAY='\033[1;30m'
+BOLD_RED='\033[1;31m'
+PURPLE='\033[0;35m'
+BOLD_PURPLE='\033[1;35m'
 WHITE='\033[1;37m'
+GRAY='\033[1;30m'
+YELLOW='\033[1;33m'
 RESET='\033[0m'
+
+# Theme aliases
+ACCENT=$RED
+ACCENT_BOLD=$BOLD_RED
+SECONDARY=$PURPLE
+SUCCESS=$PURPLE
+TEXT=$WHITE
+MUTED=$GRAY
+WARN=$YELLOW
 
 ERROR_COUNT=0
 WARN_COUNT=0
@@ -32,15 +46,15 @@ write_status() {
     local symbol="[?]"
 
     case $status in
-        "OK")    color=$GREEN; symbol="[OK]";;
-        "ERROR") color=$RED; symbol="[ERROR]";;
-        "WARN")  color=$YELLOW; symbol="[WARN]";;
-        "INFO")  color=$CYAN; symbol="[INFO]";;
+        "OK")    color=$SUCCESS; symbol="[LOCKED]";;
+        "ERROR") color=$RED; symbol="[BREACH]";;
+        "WARN")  color=$WARN; symbol="[ALERT]";;
+        "INFO")  color=$ACCENT; symbol="[SCAN]";;
     esac
 
     echo -e "${color}${symbol} ${RESET}${message}"
     if [ ! -z "$details" ]; then
-        echo -e "${GRAY}     $details${RESET}"
+        echo -e "${MUTED}     $details${RESET}"
     fi
 }
 
@@ -49,7 +63,7 @@ test_json_file() {
     local file=$1
     shift
     local keys=("$@")
-    
+
     # Use Node to parse JSON and check keys
     node -e "
         const fs = require('fs');
@@ -57,7 +71,7 @@ test_json_file() {
             const data = JSON.parse(fs.readFileSync('$file', 'utf8'));
             const required = [${keys[@]/%/,}]; // format as JS array
             const missing = required.filter(k => !Object.keys(data).includes(k));
-            
+
             if (missing.length > 0) {
                 console.log('MISSING:' + missing.join(', '));
                 process.exit(1);
@@ -75,7 +89,7 @@ test_file_content() {
     local file=$1
     shift
     local required=("$@")
-    
+
     local missing_terms=()
     for term in "${required[@]}"; do
         if ! grep -Fq "$term" "$file"; then
@@ -92,17 +106,17 @@ test_file_content() {
 
 # Header
 echo ""
-echo -e "${CYAN}============================================${RESET}"
-echo -e "${CYAN}  Planckatron Validation${RESET}"
-echo -e "${CYAN}============================================${RESET}"
+echo -e "${ACCENT_BOLD}══════════════════════════════════════════════${RESET}"
+echo -e "${ACCENT_BOLD}  PLANCKATRON SYSTEM DIAGNOSTIC${RESET}"
+echo -e "${ACCENT_BOLD}══════════════════════════════════════════════${RESET}"
 echo ""
-echo -e "${GRAY}Project Root: $PROJECT_ROOT${RESET}"
-echo -e "${GRAY}Planckatron Dir: $PLANCKATRON_DIR${RESET}"
+echo -e "${MUTED}Project Root: $PROJECT_ROOT${RESET}"
+echo -e "${MUTED}Planckatron Dir: $PLANCKATRON_DIR${RESET}"
 echo ""
 
 # --- CHECK 1: SKILL.md ---
 FILE="$PLANCKATRON_DIR/SKILL.md"
-echo -e "${WHITE}Checking SKILL.md...${RESET}"
+echo -e "${TEXT}Scanning SKILL.md...${RESET}"
 if [ -f "$FILE" ]; then
     write_status "OK" "SKILL.md exists"
     MISSING=$(test_file_content "$FILE" "Planckatron" "ALPHA" "BETA" "GAMMA")
@@ -120,7 +134,7 @@ echo ""
 
 # --- CHECK 2: config.json ---
 FILE="$PLANCKATRON_DIR/config.json"
-echo -e "${WHITE}Checking config.json...${RESET}"
+echo -e "${TEXT}Scanning config.json...${RESET}"
 if [ -f "$FILE" ]; then
     write_status "OK" "config.json exists"
     # Note: passing keys as strings usually requires quoting in bash for the JS injection above
@@ -143,7 +157,7 @@ echo ""
 
 # --- CHECK 3: project-types.json ---
 FILE="$PLANCKATRON_DIR/project-types.json"
-echo -e "${WHITE}Checking project-types.json...${RESET}"
+echo -e "${TEXT}Scanning project-types.json...${RESET}"
 if [ -f "$FILE" ]; then
     write_status "OK" "project-types.json exists"
     OUTPUT=$(test_json_file "$FILE")
@@ -161,7 +175,7 @@ echo ""
 
 # --- CHECK 4: CLAUDE.md ---
 FILE="$PROJECT_ROOT/CLAUDE.md"
-echo -e "${WHITE}Checking CLAUDE.md...${RESET}"
+echo -e "${TEXT}Scanning CLAUDE.md...${RESET}"
 if [ -f "$FILE" ]; then
     write_status "OK" "CLAUDE.md exists"
     MISSING=$(test_file_content "$FILE" "Planckatron")
@@ -178,7 +192,7 @@ fi
 echo ""
 
 # --- CHECK 5: Templates ---
-echo -e "${WHITE}Checking template files...${RESET}"
+echo -e "${TEXT}Scanning template files...${RESET}"
 TEMPLATE_DIR="$PLANCKATRON_DIR/templates"
 # Removed 'orchestrator-prompt.md' from this list as it is now deprecated
 REQUIRED=("worker-alpha.md" "worker-beta.md" "worker-gamma.md")
@@ -199,25 +213,25 @@ fi
 echo ""
 
 # --- SUMMARY ---
-echo -e "${CYAN}============================================${RESET}"
-echo -e "${CYAN}  Validation Summary${RESET}"
-echo -e "${CYAN}============================================${RESET}"
+echo -e "${ACCENT_BOLD}══════════════════════════════════════════════${RESET}"
+echo -e "${ACCENT_BOLD}  DIAGNOSTIC COMPLETE${RESET}"
+echo -e "${ACCENT_BOLD}══════════════════════════════════════════════${RESET}"
 echo ""
 
 if [ $ERROR_COUNT -eq 0 ] && [ $WARN_COUNT -eq 0 ]; then
-    echo -e "${GREEN}  Status: ALL CHECKS PASSED${RESET}"
-    echo -e "${GREEN}  Planckatron installation is valid.${RESET}"
+    echo -e "${SUCCESS}  Status: ALL SYSTEMS ONLINE${RESET}"
+    echo -e "${SUCCESS}  Planckatron installation is ${BOLD_RED}LOCKED${RESET}"
     exit 0
 elif [ $ERROR_COUNT -eq 0 ]; then
-    echo -e "${YELLOW}  Status: PASSED WITH WARNINGS${RESET}"
-    echo -e "${GREEN}  Errors:   0${RESET}"
-    echo -e "${YELLOW}  Warnings: $WARN_COUNT${RESET}"
+    echo -e "${WARN}  Status: OPERATIONAL WITH WARNINGS${RESET}"
+    echo -e "${SUCCESS}  Errors:   0${RESET}"
+    echo -e "${WARN}  Warnings: $WARN_COUNT${RESET}"
     exit 0
 else
-    echo -e "${RED}  Status: VALIDATION FAILED${RESET}"
+    echo -e "${RED}  Status: SYSTEM BREACH DETECTED${RESET}"
     echo -e "${RED}  Errors:   $ERROR_COUNT${RESET}"
-    echo -e "${YELLOW}  Warnings: $WARN_COUNT${RESET}"
+    echo -e "${WARN}  Warnings: $WARN_COUNT${RESET}"
     echo ""
-    echo -e "${RED}  Please fix the errors above before using Planckatron.${RESET}"
+    echo -e "${RED}  Fix errors before activating Planckatron.${RESET}"
     exit 1
 fi
