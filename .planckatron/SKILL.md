@@ -326,6 +326,14 @@ If the script returns exit code 1 (DENIED):
   - Request delegation to the correct agent
   - Do NOT proceed with the file operation
 
+CRITICAL ERROR HANDLING (MANDATORY):
+If you encounter a critical error that prevents task completion:
+  1. STOP further file operations immediately
+  2. Run rollback to clean up partial work:
+     node .planckatron/scripts/rollback.js --agent [YOUR_NAME] --session [TASK_ID]
+  3. Report the error with details to the Orchestrator
+  4. Do NOT leave partial/broken files in the workspace
+
 TO SPAWN MINI-AGENTS:
 Send multiple Task calls in ONE message:
 - description="alpha-1: [subtask]"
@@ -629,6 +637,58 @@ node .planckatron/scripts/update-registry.js --complete-execution
 | 10 | Quality checks - run build/lint/test             |
 +----+--------------------------------------------------+
 ```
+
+---
+
+## RESILIENCE & RECOVERY
+
+### Watchdog (Timeout Protection)
+
+Wrap long-running scripts with the timeout watchdog to prevent infinite hangs:
+
+```bash
+# Run with default timeout (120s)
+node .planckatron/scripts/run-with-timeout.js -- node some-script.js
+
+# Run with custom timeout
+node .planckatron/scripts/run-with-timeout.js --timeout 60 -- npm run build
+
+# Exit code 124 = TIMEOUT (process was killed)
+```
+
+### Rollback (Critical Error Recovery)
+
+**CRITICAL RULE FOR ALL AGENTS:**
+If you encounter a critical error during execution, you MUST trigger the rollback script to clean up your workspace before reporting failure.
+
+```bash
+# Rollback files created by a specific agent in a session
+node .planckatron/scripts/rollback.js --agent ALPHA --session task-123
+
+# Rollback all agents for a session
+node .planckatron/scripts/rollback.js --session task-123
+
+# Preview what would be deleted (dry run)
+node .planckatron/scripts/rollback.js --dry-run --agent BETA --session task-123
+```
+
+### Resume Mode
+
+If the system detects an incomplete session on startup:
+
+```bash
+# Check for resumable sessions (JSON output)
+node .planckatron/scripts/init-memory.js --check-resume
+
+# Exit code 2 = Resume available (outputs skip_agents list)
+# Exit code 0 = No resume needed
+```
+
+The Orchestrator should:
+1. Check for incomplete sessions at startup
+2. Ask user: "Resume? (Y/N)"
+3. If Y: Skip `completed_agents` from the checkpoint
+4. If N: Clear `currentExecution` and start fresh
 
 ---
 

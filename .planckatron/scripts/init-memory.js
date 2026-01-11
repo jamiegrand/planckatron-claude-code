@@ -54,7 +54,7 @@ const DEFAULT_MEMORY = {
   ],
 
   fileRegistry: [
-    // { path: 'src/app/layout.tsx', createdBy: 'ALPHA', purpose: 'Root layout', modifiedAt: '...' }
+    // { path: 'src/app/layout.tsx', createdBy: 'ALPHA', purpose: 'Root layout', modifiedAt: '...', sessionId: '...' }
   ],
 
   architectureDecisions: [
@@ -65,8 +65,12 @@ const DEFAULT_MEMORY = {
     // { taskId: '...', description: '...', status: 'complete', agents: {...}, timestamp: '...' }
   ],
 
+  rollbackHistory: [
+    // { timestamp: '...', session: '...', agent: '...', filesDeleted: [...] }
+  ],
+
   currentExecution: null
-  // When running: { taskId: '...', phase: 'EXECUTE', checkpoint: { alpha: 'complete', beta: 'running', gamma: 'pending' } }
+  // When running: { taskId: '...', phase: 'EXECUTE', status: 'running'|'failed'|'interrupted'|'rolled_back', checkpoint: { alpha: 'complete', beta: 'running', gamma: 'pending' }, createdFiles: [...] }
 };
 
 /**
@@ -233,6 +237,109 @@ function generateSummary(memory, isNew) {
 }
 
 /**
+ * Check if the last session needs recovery
+ * Returns resume info if recovery is possible
+ */
+function checkForResume(memory) {
+  if (!memory.currentExecution) {
+    return null;
+  }
+
+  const exec = memory.currentExecution;
+  const status = exec.status || 'unknown';
+
+  // Check for incomplete/failed/interrupted sessions
+  if (status === 'failed' || status === 'interrupted' || status === 'running') {
+    const completedAgents = [];
+    const pendingAgents = [];
+    const failedAgents = [];
+
+    if (exec.checkpoint) {
+      for (const [agent, agentStatus] of Object.entries(exec.checkpoint)) {
+        if (agentStatus === 'complete') {
+          completedAgents.push(agent.toUpperCase());
+        } else if (agentStatus === 'failed' || agentStatus === 'error') {
+          failedAgents.push(agent.toUpperCase());
+        } else {
+          pendingAgents.push(agent.toUpperCase());
+        }
+      }
+    }
+
+    return {
+      taskId: exec.taskId,
+      description: exec.description,
+      status: status,
+      startedAt: exec.startedAt,
+      completedAgents,
+      pendingAgents,
+      failedAgents
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Generate resume prompt for user
+ */
+function generateResumePrompt(resumeInfo) {
+  const lines = [];
+
+  lines.push('');
+  lines.push('╔══════════════════════════════════════════════════════════════╗');
+  lines.push('║           INCOMPLETE SESSION DETECTED                        ║');
+  lines.push('╚══════════════════════════════════════════════════════════════╝');
+  lines.push('');
+  lines.push(`  Task ID:     ${resumeInfo.taskId}`);
+  lines.push(`  Description: ${resumeInfo.description || 'N/A'}`);
+  lines.push(`  Status:      ${resumeInfo.status.toUpperCase()}`);
+  lines.push(`  Started:     ${resumeInfo.startedAt}`);
+  lines.push('');
+  lines.push('┌─ CHECKPOINT STATUS ─────────────────────────────────────────┐');
+
+  const statusIcon = (agents, icon) => agents.length > 0 ? `${icon} ${agents.join(', ')}` : null;
+
+  const completed = statusIcon(resumeInfo.completedAgents, '[DONE]');
+  const pending = statusIcon(resumeInfo.pendingAgents, '[PEND]');
+  const failed = statusIcon(resumeInfo.failedAgents, '[FAIL]');
+
+  if (completed) lines.push(`│  ${completed.padEnd(60)}│`);
+  if (pending) lines.push(`│  ${pending.padEnd(60)}│`);
+  if (failed) lines.push(`│  ${failed.padEnd(60)}│`);
+
+  lines.push('└──────────────────────────────────────────────────────────────┘');
+  lines.push('');
+  lines.push('┌──────────────────────────────────────────────────────────────┐');
+  lines.push('│  Resume previous execution?                                  │');
+  lines.push('│                                                              │');
+  lines.push('│  [Y] Yes - Skip completed agents, continue from checkpoint   │');
+  lines.push('│  [N] No  - Discard and start fresh                           │');
+  lines.push('└──────────────────────────────────────────────────────────────┘');
+  lines.push('');
+
+  return lines.join('\n');
+}
+
+/**
+ * Output resume data as JSON for programmatic use
+ */
+function outputResumeJson(resumeInfo) {
+  console.log(JSON.stringify({
+    resume_available: true,
+    task_id: resumeInfo.taskId,
+    description: resumeInfo.description,
+    status: resumeInfo.status,
+    started_at: resumeInfo.startedAt,
+    completed_agents: resumeInfo.completedAgents,
+    pending_agents: resumeInfo.pendingAgents,
+    failed_agents: resumeInfo.failedAgents,
+    skip_agents: resumeInfo.completedAgents,
+    timestamp: new Date().toISOString()
+  }, null, 2));
+}
+
+/**
  * Main execution
  */
 function main() {
@@ -241,6 +348,7 @@ function main() {
     summary: args.includes('--summary'),
     reset: args.includes('--reset'),
     json: args.includes('--json'),
+    checkResume: args.includes('--check-resume'),
     help: args.includes('--help') || args.includes('-h')
   };
 
@@ -249,26 +357,54 @@ function main() {
 Planckatron Memory System
 
 Usage:
-  node init-memory.js              Initialize or read memory
-  node init-memory.js --summary    Output summary only (no init)
-  node init-memory.js --reset      Reset memory to defaults
-  node init-memory.js --json       Output raw JSON
+  node init-memory.js                Initialize or read memory
+  node init-memory.js --summary      Output summary only (no init)
+  node init-memory.js --reset        Reset memory to defaults
+  node init-memory.js --json         Output raw JSON
+  node init-memory.js --check-resume Check for resumable session (JSON output)
 
 Memory Location: ${MEMORY_FILE}
+
+Exit Codes:
+  0 - Normal completion (no incomplete session)
+  2 - Incomplete session detected (resume available)
     `);
     process.exit(0);
   }
 
   const { isNew, memory } = initializeMemory(flags.reset);
 
+  // Check for resume mode
+  const resumeInfo = checkForResume(memory);
+
+  if (flags.checkResume) {
+    // Programmatic mode: output JSON for resume decision
+    if (resumeInfo) {
+      outputResumeJson(resumeInfo);
+      process.exit(2);
+    } else {
+      console.log(JSON.stringify({
+        resume_available: false,
+        timestamp: new Date().toISOString()
+      }, null, 2));
+      process.exit(0);
+    }
+  }
+
   if (flags.json) {
     console.log(JSON.stringify(memory, null, 2));
   } else {
+    // Show normal summary
     console.log(generateSummary(memory, isNew));
+
+    // If there's an incomplete session, show resume prompt
+    if (resumeInfo) {
+      console.log(generateResumePrompt(resumeInfo));
+    }
   }
 
   // Exit with code indicating if resumable task exists
-  if (memory.currentExecution) {
+  if (resumeInfo) {
     process.exit(2); // Special code: incomplete execution
   }
   process.exit(0);
