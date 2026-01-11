@@ -1,8 +1,11 @@
 {
-  "name": "planckatron",
-  "version": "2.2.0",
-  "description": "Hierarchical Multi-Agent Orchestration System for Claude Code",
-  "author": "Daniel Agrici",
+  "name": "planckatron-zero",
+  "version": "3.0.0",
+  "description": "Hardened Multi-Agent Orchestration System for Claude Code",
+  "author": "Jamie Grand",
+  "contributors": [
+    "Daniel Agrici <original author>"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
