@@ -1,12 +1,18 @@
 {
-  "version": "2.1.0",
-  "description": "Universal project type configurations for Planckatron",
+  "version": "2.3.0",
+  "description": "Universal project type configurations for Planckatron with structured detection",
 
   "projectTypes": {
     "frontend": {
       "name": "Frontend UI",
       "description": "React, Next.js, Vue, Svelte - UI components and pages",
-      "detectPatterns": ["package.json with react/vue/svelte", "src/components/**", "src/app/**"],
+      "detectPatterns": {
+        "files": ["package.json", "next.config.*", "vite.config.*", "nuxt.config.*"],
+        "contentMatch": {
+          "package.json": ["\"react\"", "\"next\"", "\"vue\"", "\"svelte\"", "\"@angular/core\""]
+        },
+        "directories": ["src/app", "src/components", "src/pages", "pages", "app"]
+      },
       "zones": {
         "alpha": {
           "name": "Foundation",
@@ -15,11 +21,19 @@
             "src/app/layout.tsx",
             "src/app/globals.css",
             "src/styles/**",
+            "styles/**",
             "tailwind.config.*",
             "postcss.config.*",
-            "next.config.*"
+            "next.config.*",
+            "vite.config.*"
           ],
-          "forbidden": ["src/components/**", "src/app/page.tsx", "src/app/**/page.tsx"]
+          "forbidden": [
+            "src/components/**",
+            "src/app/page.tsx",
+            "src/app/**/page.tsx",
+            "src/data/**",
+            "src/hooks/**"
+          ]
         },
         "beta": {
           "name": "Components",
@@ -29,18 +43,33 @@
             "src/data/**",
             "src/hooks/**",
             "src/lib/**",
-            "src/types/**"
+            "src/types/**",
+            "src/utils/**"
           ],
-          "forbidden": ["src/app/layout.tsx", "src/app/page.tsx"]
+          "forbidden": [
+            "src/app/layout.tsx",
+            "src/app/globals.css",
+            "src/app/page.tsx",
+            "src/app/**/page.tsx",
+            "src/styles/**"
+          ]
         },
         "gamma": {
           "name": "Integration",
           "responsibility": "Page composition, assembly, final integration",
           "owns": [
             "src/app/page.tsx",
-            "src/app/**/page.tsx"
+            "src/app/**/page.tsx",
+            "pages/**/*.tsx",
+            "app/**/page.tsx"
           ],
-          "forbidden": ["src/app/layout.tsx", "src/components/**"]
+          "forbidden": [
+            "src/app/layout.tsx",
+            "src/app/globals.css",
+            "src/components/**",
+            "src/lib/**",
+            "src/hooks/**"
+          ]
         }
       }
     },
@@ -48,7 +77,13 @@
     "backend": {
       "name": "Backend API",
       "description": "Node.js, Express, Fastify, NestJS - Server-side APIs",
-      "detectPatterns": ["src/routes/**", "src/controllers/**", "src/models/**"],
+      "detectPatterns": {
+        "files": ["package.json", "tsconfig.json"],
+        "contentMatch": {
+          "package.json": ["\"express\"", "\"fastify\"", "\"@nestjs/core\"", "\"koa\"", "\"hapi\""]
+        },
+        "directories": ["src/routes", "src/controllers", "src/models", "src/services"]
+      },
       "zones": {
         "alpha": {
           "name": "Models & Schema",
@@ -57,10 +92,17 @@
             "src/models/**",
             "src/schemas/**",
             "src/types/**",
+            "src/entities/**",
             "prisma/**",
             "drizzle/**"
           ],
-          "forbidden": ["src/routes/**", "src/controllers/**", "src/app.ts"]
+          "forbidden": [
+            "src/routes/**",
+            "src/controllers/**",
+            "src/services/**",
+            "src/app.ts",
+            "src/index.ts"
+          ]
         },
         "beta": {
           "name": "Services & Logic",
@@ -69,9 +111,16 @@
             "src/services/**",
             "src/utils/**",
             "src/helpers/**",
-            "src/middleware/**"
+            "src/middleware/**",
+            "src/validators/**"
           ],
-          "forbidden": ["src/models/**", "src/routes/**", "src/app.ts"]
+          "forbidden": [
+            "src/models/**",
+            "src/routes/**",
+            "src/controllers/**",
+            "src/app.ts",
+            "src/index.ts"
+          ]
         },
         "gamma": {
           "name": "Routes & Controllers",
@@ -80,9 +129,14 @@
             "src/routes/**",
             "src/controllers/**",
             "src/app.ts",
-            "src/index.ts"
+            "src/index.ts",
+            "src/server.ts"
           ],
-          "forbidden": ["src/models/**", "src/services/**"]
+          "forbidden": [
+            "src/models/**",
+            "src/services/**",
+            "src/middleware/**"
+          ]
         }
       }
     },
@@ -90,20 +144,33 @@
     "fullstack": {
       "name": "Full-Stack Application",
       "description": "Combined frontend and backend in one project",
-      "detectPatterns": ["src/app/**", "src/api/**", "app/api/**"],
+      "detectPatterns": {
+        "files": ["package.json", "next.config.*"],
+        "contentMatch": {
+          "package.json": ["\"next\"", "\"@trpc/server\"", "\"prisma\""]
+        },
+        "directories": ["src/app", "app/api", "src/server", "src/api"]
+      },
       "zones": {
         "alpha": {
           "name": "Backend & API",
           "responsibility": "API routes, server actions, database",
           "owns": [
             "src/api/**",
-            "app/api/**",
             "src/server/**",
             "src/db/**",
+            "src/actions/**",
+            "app/api/**",
             "prisma/**",
-            "src/actions/**"
+            "drizzle/**"
           ],
-          "forbidden": ["src/components/**", "src/app/page.tsx", "app/page.tsx"]
+          "forbidden": [
+            "src/components/**",
+            "src/app/page.tsx",
+            "src/app/**/page.tsx",
+            "app/page.tsx",
+            "src/hooks/**"
+          ]
         },
         "beta": {
           "name": "Frontend Components",
@@ -112,9 +179,16 @@
             "src/components/**",
             "components/**",
             "src/hooks/**",
-            "src/lib/client/**"
+            "src/lib/client/**",
+            "src/utils/client/**"
           ],
-          "forbidden": ["src/api/**", "app/api/**", "src/app/page.tsx"]
+          "forbidden": [
+            "src/api/**",
+            "app/api/**",
+            "src/server/**",
+            "src/app/page.tsx",
+            "src/app/layout.tsx"
+          ]
         },
         "gamma": {
           "name": "Pages & Integration",
@@ -122,11 +196,17 @@
           "owns": [
             "src/app/page.tsx",
             "src/app/**/page.tsx",
+            "src/app/layout.tsx",
             "app/page.tsx",
             "app/**/page.tsx",
-            "src/app/layout.tsx"
+            "app/layout.tsx"
           ],
-          "forbidden": ["src/api/**", "src/components/**"]
+          "forbidden": [
+            "src/api/**",
+            "app/api/**",
+            "src/components/**",
+            "src/server/**"
+          ]
         }
       }
     },
@@ -134,7 +214,13 @@
     "automation": {
       "name": "Automation & Scripts",
       "description": "CLI tools, scripts, pipelines, automation workflows",
-      "detectPatterns": ["scripts/**", "src/cli/**", "bin/**"],
+      "detectPatterns": {
+        "files": ["package.json"],
+        "contentMatch": {
+          "package.json": ["\"commander\"", "\"yargs\"", "\"inquirer\"", "\"ora\"", "\"chalk\""]
+        },
+        "directories": ["scripts", "src/cli", "src/commands", "bin"]
+      },
       "zones": {
         "alpha": {
           "name": "Core Scripts",
@@ -144,7 +230,12 @@
             "src/core/**",
             "src/commands/**"
           ],
-          "forbidden": ["src/config/**", "src/cli.ts"]
+          "forbidden": [
+            "src/config/**",
+            "src/cli.ts",
+            "src/index.ts",
+            "bin/**"
+          ]
         },
         "beta": {
           "name": "Utilities & Config",
@@ -155,7 +246,12 @@
             "src/templates/**",
             "config/**"
           ],
-          "forbidden": ["scripts/**", "src/cli.ts"]
+          "forbidden": [
+            "scripts/**",
+            "src/cli.ts",
+            "src/commands/**",
+            "bin/**"
+          ]
         },
         "gamma": {
           "name": "CLI & Entry",
@@ -163,10 +259,15 @@
           "owns": [
             "src/cli.ts",
             "src/index.ts",
+            "src/main.ts",
             "bin/**",
             "src/pipeline/**"
           ],
-          "forbidden": ["scripts/**", "src/utils/**"]
+          "forbidden": [
+            "scripts/**",
+            "src/utils/**",
+            "src/config/**"
+          ]
         }
       }
     },
@@ -174,7 +275,13 @@
     "agentic": {
       "name": "Agentic Workflows",
       "description": "AI agents, LLM workflows, autonomous systems",
-      "detectPatterns": ["src/agents/**", "src/prompts/**", "src/tools/**"],
+      "detectPatterns": {
+        "files": ["package.json"],
+        "contentMatch": {
+          "package.json": ["\"@anthropic-ai/sdk\"", "\"openai\"", "\"langchain\"", "\"@ai-sdk\""]
+        },
+        "directories": ["src/agents", "src/prompts", "src/tools"]
+      },
       "zones": {
         "alpha": {
           "name": "Agents & Core",
@@ -184,7 +291,12 @@
             "src/core/**",
             "src/memory/**"
           ],
-          "forbidden": ["src/tools/**", "src/orchestrator/**"]
+          "forbidden": [
+            "src/tools/**",
+            "src/orchestrator/**",
+            "src/prompts/**",
+            "src/index.ts"
+          ]
         },
         "beta": {
           "name": "Tools & Prompts",
@@ -195,7 +307,12 @@
             "src/utils/**",
             "src/parsers/**"
           ],
-          "forbidden": ["src/agents/**", "src/orchestrator/**"]
+          "forbidden": [
+            "src/agents/**",
+            "src/orchestrator/**",
+            "src/core/**",
+            "src/index.ts"
+          ]
         },
         "gamma": {
           "name": "Orchestration",
@@ -206,7 +323,137 @@
             "src/index.ts",
             "src/main.ts"
           ],
-          "forbidden": ["src/agents/**", "src/tools/**"]
+          "forbidden": [
+            "src/agents/**",
+            "src/tools/**",
+            "src/prompts/**"
+          ]
+        }
+      }
+    },
+
+    "python": {
+      "name": "Python Backend",
+      "description": "FastAPI, Django, Flask - Python server-side applications",
+      "detectPatterns": {
+        "files": ["requirements.txt", "pyproject.toml", "setup.py", "Pipfile"],
+        "contentMatch": {
+          "requirements.txt": ["fastapi", "django", "flask", "uvicorn"],
+          "pyproject.toml": ["fastapi", "django", "flask"]
+        },
+        "directories": ["app", "src", "api", "models", "routers"]
+      },
+      "zones": {
+        "alpha": {
+          "name": "Models & Schema",
+          "responsibility": "Database models, Pydantic schemas, types",
+          "owns": [
+            "models/**",
+            "app/models/**",
+            "schemas/**",
+            "app/schemas/**",
+            "db/**"
+          ],
+          "forbidden": [
+            "routers/**",
+            "api/**",
+            "services/**",
+            "main.py",
+            "app.py"
+          ]
+        },
+        "beta": {
+          "name": "Services & Logic",
+          "responsibility": "Business logic, services, utilities",
+          "owns": [
+            "services/**",
+            "app/services/**",
+            "utils/**",
+            "app/utils/**",
+            "core/**"
+          ],
+          "forbidden": [
+            "models/**",
+            "routers/**",
+            "api/**",
+            "main.py"
+          ]
+        },
+        "gamma": {
+          "name": "Routes & Entry",
+          "responsibility": "API endpoints, routers, entry points",
+          "owns": [
+            "routers/**",
+            "app/routers/**",
+            "api/**",
+            "app/api/**",
+            "main.py",
+            "app.py"
+          ],
+          "forbidden": [
+            "models/**",
+            "services/**",
+            "schemas/**"
+          ]
+        }
+      }
+    },
+
+    "go": {
+      "name": "Go Backend",
+      "description": "Gin, Echo, Fiber - Go server-side applications",
+      "detectPatterns": {
+        "files": ["go.mod", "go.sum"],
+        "contentMatch": {
+          "go.mod": ["gin-gonic", "echo", "fiber", "chi"]
+        },
+        "directories": ["cmd", "internal", "pkg", "handlers", "models"]
+      },
+      "zones": {
+        "alpha": {
+          "name": "Models & Domain",
+          "responsibility": "Domain models, database, types",
+          "owns": [
+            "internal/models/**",
+            "internal/domain/**",
+            "pkg/models/**",
+            "internal/repository/**"
+          ],
+          "forbidden": [
+            "internal/handlers/**",
+            "internal/services/**",
+            "cmd/**"
+          ]
+        },
+        "beta": {
+          "name": "Services & Logic",
+          "responsibility": "Business logic, services",
+          "owns": [
+            "internal/services/**",
+            "internal/usecase/**",
+            "pkg/utils/**",
+            "internal/middleware/**"
+          ],
+          "forbidden": [
+            "internal/models/**",
+            "internal/handlers/**",
+            "cmd/**"
+          ]
+        },
+        "gamma": {
+          "name": "Handlers & Entry",
+          "responsibility": "HTTP handlers, routers, entry points",
+          "owns": [
+            "internal/handlers/**",
+            "internal/router/**",
+            "cmd/**",
+            "main.go"
+          ],
+          "forbidden": [
+            "internal/models/**",
+            "internal/services/**",
+            "internal/repository/**"
+          ]
         }
       }
     },
@@ -214,7 +461,13 @@
     "library": {
       "name": "Library / Package",
       "description": "Reusable library, npm package, SDK",
-      "detectPatterns": ["src/index.ts exports", "lib/**", "dist/**"],
+      "detectPatterns": {
+        "files": ["package.json", "tsconfig.json"],
+        "contentMatch": {
+          "package.json": ["\"main\"", "\"module\"", "\"exports\""]
+        },
+        "directories": ["src", "lib", "dist"]
+      },
       "zones": {
         "alpha": {
           "name": "Core Implementation",
@@ -224,7 +477,11 @@
             "src/lib/**",
             "lib/**"
           ],
-          "forbidden": ["src/index.ts", "src/types/**"]
+          "forbidden": [
+            "src/index.ts",
+            "src/types/**",
+            "src/utils/**"
+          ]
         },
         "beta": {
           "name": "Types & Utilities",
@@ -234,7 +491,11 @@
             "src/utils/**",
             "src/helpers/**"
           ],
-          "forbidden": ["src/core/**", "src/index.ts"]
+          "forbidden": [
+            "src/core/**",
+            "src/index.ts",
+            "lib/**"
+          ]
         },
         "gamma": {
           "name": "Exports & API",
@@ -242,9 +503,13 @@
           "owns": [
             "src/index.ts",
             "src/exports/**",
-            "README.md"
+            "index.ts"
           ],
-          "forbidden": ["src/core/**", "src/utils/**"]
+          "forbidden": [
+            "src/core/**",
+            "src/utils/**",
+            "lib/**"
+          ]
         }
       }
     },
@@ -252,7 +517,11 @@
     "monorepo": {
       "name": "Monorepo",
       "description": "Multi-package repository with shared code",
-      "detectPatterns": ["packages/**", "apps/**", "pnpm-workspace.yaml"],
+      "detectPatterns": {
+        "files": ["pnpm-workspace.yaml", "lerna.json", "nx.json", "turbo.json"],
+        "contentMatch": {},
+        "directories": ["packages", "apps", "libs"]
+      },
       "zones": {
         "alpha": {
           "name": "Shared Packages",
@@ -260,18 +529,28 @@
           "owns": [
             "packages/shared/**",
             "packages/common/**",
-            "packages/utils/**"
+            "packages/utils/**",
+            "libs/shared/**"
           ],
-          "forbidden": ["apps/**", "packages/ui/**"]
+          "forbidden": [
+            "apps/**",
+            "packages/ui/**",
+            "packages/web/**"
+          ]
         },
         "beta": {
           "name": "UI & Components",
           "responsibility": "UI package, component library",
           "owns": [
             "packages/ui/**",
-            "packages/components/**"
+            "packages/components/**",
+            "libs/ui/**"
           ],
-          "forbidden": ["packages/shared/**", "apps/**"]
+          "forbidden": [
+            "packages/shared/**",
+            "apps/**",
+            "libs/shared/**"
+          ]
         },
         "gamma": {
           "name": "Applications",
@@ -279,7 +558,10 @@
           "owns": [
             "apps/**"
           ],
-          "forbidden": ["packages/**"]
+          "forbidden": [
+            "packages/**",
+            "libs/**"
+          ]
         }
       }
     },
@@ -287,7 +569,11 @@
     "custom": {
       "name": "Custom Configuration",
       "description": "User-defined zone configuration",
-      "detectPatterns": [],
+      "detectPatterns": {
+        "files": [],
+        "contentMatch": {},
+        "directories": []
+      },
       "zones": {
         "alpha": {
           "name": "Track A",
@@ -317,6 +603,8 @@
     "monorepo",
     "agentic",
     "fullstack",
+    "python",
+    "go",
     "backend",
     "frontend",
     "automation",

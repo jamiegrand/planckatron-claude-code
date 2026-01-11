@@ -315,7 +315,16 @@ EXECUTION STRATEGY:
 - Analyze complexity of each task
 - Complex (3+ files) -> spawn mini-agents
 - Simple -> execute directly
-- Stay within YOUR ZONE
+- **VALIDATE ZONE BEFORE EVERY FILE WRITE**
+
+ZONE VALIDATION (MANDATORY):
+Before creating or modifying ANY file, run:
+  node .planckatron/scripts/validate-zone.js --agent [YOUR_NAME] --file [PATH]
+
+If the script returns exit code 1 (DENIED):
+  - You are FORBIDDEN from creating/modifying that file
+  - Request delegation to the correct agent
+  - Do NOT proceed with the file operation
 
 TO SPAWN MINI-AGENTS:
 Send multiple Task calls in ONE message:
@@ -614,11 +623,53 @@ node .planckatron/scripts/update-registry.js --complete-execution
 | 4  | Use AskUserQuestion - for choices and approvals  |
 | 5  | Visual planning - show flow diagrams             |
 | 6  | Parallel everything - Team Leads + mini-agents   |
-| 7  | Zone ownership - no file conflicts               |
+| 7  | VALIDATE ZONES - run validate-zone.js            |
 | 8  | Update checkpoints - before/after each agent     |
 | 9  | Workers MUST report back - register files        |
 | 10 | Quality checks - run build/lint/test             |
 +----+--------------------------------------------------+
+```
+
+---
+
+## ZONE ENFORCEMENT (CRITICAL)
+
+All agents MUST validate file access before writing:
+
+```bash
+# Before creating ANY file:
+node .planckatron/scripts/validate-zone.js --agent ALPHA --file "src/app/layout.tsx"
+
+# Exit code 0 = ALLOWED, proceed with file creation
+# Exit code 1 = DENIED, do NOT create the file
+# Exit code 2 = ERROR, check arguments
+```
+
+### Enforcement Rules
+
+1. **Pre-Write Validation**: Every Write/Edit operation must be preceded by zone validation
+2. **No Exceptions**: Even if you "think" a file belongs to you, validate first
+3. **Delegation Protocol**: If denied, request the correct agent to handle the file
+4. **Audit Trail**: All zone validations are logged for conflict resolution
+
+### Example Workflow
+
+```
+AGENT ALPHA wants to create src/components/Button.tsx
+
+Step 1: Run validation
+  $ node .planckatron/scripts/validate-zone.js --agent alpha --file "src/components/Button.tsx"
+
+Step 2: Check result
+  {
+    "status": "DENIED",
+    "reason": "FORBIDDEN_ZONE",
+    "message": "Agent ALPHA is FORBIDDEN from file: src/components/Button.tsx",
+    "suggestion": "This file belongs to BETA's zone"
+  }
+
+Step 3: DO NOT CREATE THE FILE
+  Instead, report: "Button.tsx belongs to BETA's zone. Delegation required."
 ```
 
 ---
